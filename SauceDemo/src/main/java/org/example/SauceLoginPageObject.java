@@ -62,6 +62,7 @@ public class SauceLoginPageObject {
         burgerMenubtn.click();
         logOut.click();
         System.out.println("Logged out Successfully");
+        System.out.println("------------------------------------------------------------");
     }
 
     public void signInProcess(String UserNameInput, String PasswordInput){
@@ -115,5 +116,9 @@ public class SauceLoginPageObject {
 
         //line breaker for readability in console log
         System.out.println("-------------------------------------------------");
+    }
+
+    public void browerClose(){
+        driver.close();
     }
 }
