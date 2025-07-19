@@ -1,6 +1,7 @@
 package org.example;
 
 import org.openqa.selenium.By;
+import org.openqa.selenium.Cookie;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.ui.ExpectedConditions;
@@ -19,41 +20,47 @@ public class SauceLoginPageObject {
         this.driver = driver;
     }
 
+    By usernameElement = By.id("user-name");
+    By passwordElement = By.id("password");
+    By loginElement = By.id("login-button");
+    By loginPageTitle = By.className("login_logo");
+
     public void UserName(String userName) {
-        WebElement loginUserName = driver.findElement(By.id("user-name"));
+        WebElement loginUserName = driver.findElement(usernameElement);
         loginUserName.sendKeys(userName);
         System.out.println("In Login Page User name entered as " + userName);
     }
 
     public void Password(String password) {
-        WebElement loginPassword = driver.findElement(By.id("password"));
+        WebElement loginPassword = driver.findElement(passwordElement);
         loginPassword.sendKeys(password);
         System.out.println("In Login Page password entered as " + password);
     }
 
     public void loginButton() {
-        WebElement loginButton = driver.findElement(By.id("login-button"));
+        WebElement loginButton = driver.findElement(loginElement);
         loginButton.click();
         System.out.println("Login Successfully");
     }
 
     public void errorMessages(String expectedErrorMessage) {
         WebElement errorMessage = driver.findElement(By.xpath("//div[@class='error-message-container error']/h3"));
-        if (errorMessage.isDisplayed()) {
-            String actualErrorMessage = errorMessage.getText().replace("Epic sadface: ", "");
-            System.out.println("In Login Page error message get displayed as " + '"' + actualErrorMessage + '"');
-            softAssert.assertTrue(actualErrorMessage.equalsIgnoreCase(expectedErrorMessage));
-            softAssert.assertAll();
-        }
+        String actualErrorMessage = errorMessage.getText().replace("Epic sadface: ", "");
+        System.out.println("In Login Page error message get displayed as " + '"' + actualErrorMessage + '"');
+        softAssert.assertTrue(actualErrorMessage.equalsIgnoreCase(expectedErrorMessage));
+        softAssert.assertAll();
+
     }
 
     public void errorMessageCloseIcon() {
         List<WebElement> errorMessage = driver.findElements(By.xpath("//div[@class='error-message-container']"));
         WebElement errorMessageCloseIcon = driver.findElement(By.className("error-button"));
         errorMessageCloseIcon.click();
-        new WebDriverWait(driver, Duration.ofSeconds(10)).until(ExpectedConditions.invisibilityOfAllElements(errorMessage));
-        softAssert.assertTrue(errorMessage.isEmpty() , "Error message still get displayed in Login Page");
-        softAssert.assertAll();
+        Boolean errorDisapper = new WebDriverWait(driver, Duration.ofSeconds(10)).until(ExpectedConditions.invisibilityOfAllElements(errorMessage));
+        if(errorDisapper){
+            softAssert.assertTrue(errorMessage.isEmpty(), "Error message still get displayed in Login Page");
+            softAssert.assertAll();
+        }
     }
 
     public void signOut() {
@@ -62,10 +69,10 @@ public class SauceLoginPageObject {
         burgerMenubtn.click();
         logOut.click();
         System.out.println("Logged out Successfully");
-        System.out.println("------------------------------------------------------------");
+        System.out.println("---------------------------------------------------------------------");
     }
 
-    public void signInProcess(String UserNameInput, String PasswordInput){
+    public void signInProcess(String UserNameInput, String PasswordInput) {
         UserName(UserNameInput);
         Password(PasswordInput);
         loginButton();
@@ -81,14 +88,17 @@ public class SauceLoginPageObject {
                 break;
             }
             case "invaliduser": {
+                driver.navigate().refresh();
                 UserName(UserNameInput);
                 Password(PasswordInput);
                 loginButton();
                 errorMessages("Sorry, this user has been locked out.");
+                errorMessageCloseIcon();
                 break;
             }
             case "withoutusername":
             case "withoutusernameandpassword": {
+                driver.navigate().refresh();
                 UserName(UserNameInput);
                 Password(PasswordInput);
                 loginButton();
@@ -96,6 +106,7 @@ public class SauceLoginPageObject {
                 break;
             }
             case "withoutpassword": {
+                driver.navigate().refresh();
                 UserName(UserNameInput);
                 Password(PasswordInput);
                 loginButton();
@@ -103,6 +114,7 @@ public class SauceLoginPageObject {
                 break;
             }
             case "errormessagedisappear": {
+                driver.navigate().refresh();
                 UserName(UserNameInput);
                 Password(PasswordInput);
                 loginButton();
@@ -118,7 +130,11 @@ public class SauceLoginPageObject {
         System.out.println("-------------------------------------------------");
     }
 
-    public void browerClose(){
-        driver.close();
+    public void validateSession(String expectedUserName) {
+        Cookie cookie = driver.manage().getCookieNamed("session-username");
+        String actualName = cookie.getValue();
+        softAssert.assertEquals(actualName,expectedUserName);
+        softAssert.assertAll();
+        System.out.println("session-username '"+actualName+"' store in cookie is matched with login username '"+expectedUserName+"'");
     }
 }
