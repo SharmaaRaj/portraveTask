@@ -35,7 +35,7 @@ public class SauceLoginPageTest {
         return loginTestData;
     }
 
-    @Test(priority = 1)
+    @Test
     public void launchUrl(){
         driver.get("https://www.saucedemo.com/");
         driver.manage().window().maximize();
@@ -49,40 +49,24 @@ public class SauceLoginPageTest {
     public Object[][] loginData(){
         Object[][] values = {
                 {"standard_user","secret_sauce","ValidUser"},
-                {"locked_out_user","secret_sauce","InValidUser"},
                 {"","secret_sauce","WithoutUsername"},
                 {"locked_out_user","","WithoutPassword"},
                 {"","","WithoutUsernameAndPassword"},
-                {"","secret_sauce","ErrorMessageDisappear"}
+                {"","secret_sauce","ErrorMessageDisappear"},
+                {"locked_out_user","secret_sauce","InValidUser"}
         };
         return values;
     }
 
-    @Test(dataProvider = "loginAuthentication",dependsOnMethods = {"launchUrl"})
+    @Test(dataProvider = "loginAuthentication",dependsOnMethods = {"launchUrl"},priority = 1)
     public void loginDetails(String UserName, String Password, String evaluationType){
         sauceLoginPageObject.validateUserDetails(UserName,Password,evaluationType);
     }
 
-
-    /* Scenario - 2 : Check Landing page displayed after valid login
-        and validate each item is navigating to its corresponding page details
-        then validate product name, image src, product description and product price
-
+    /* Scenario - 2 : Sort [A-Z], Sort [Z-A], Sort [Price Low - High] and Sort [Price High - Low]
         ExpectedResult -> script should be passed only for "standard_user and performance_glitch_user"
      */
-
-    @Test(dataProvider = "LoginTestData",dependsOnMethods ={"launchUrl"},alwaysRun = true)
-    public void landingPageCardNaviagtion(String userName, String password){
-        sauceLoginPageObject.signInProcess(userName,password);
-        landingPageObjects.inventoryItems();
-        landingPageObjects.validateEachProduct();
-        sauceLoginPageObject.signOut();
-    }
-
-    /* Scenario - 3 : Sort [A-Z], Sort [Z-A], Sort [Price Low - High] and Sort [Price High - Low]
-        ExpectedResult -> script should be passed only for "standard_user and performance_glitch_user"
-     */
-    @Test(priority = 2,dependsOnMethods = {"launchUrl"},dataProvider = "LoginTestData")
+    @Test(dependsOnMethods = {"launchUrl"},dataProvider = "LoginTestData",priority = 4)
     public void validateSorting(String userName, String password){
         sauceLoginPageObject.signInProcess(userName,password);
         landingPageObjects.sorting("Price (low to high)");
@@ -92,16 +76,38 @@ public class SauceLoginPageTest {
         sauceLoginPageObject.signOut();
     }
 
+    /* Scenario - 3 : Check Landing page displayed after valid login
+        and validate each item is navigating to its corresponding page details
+        then validate product name, image src, product description and product price
 
-    /*Scenario - 4 : Add single/multiple product to cart, then validate number value in cart icon
-    and validate all added products are displayed in cart part
+        ExpectedResult -> script should be passed only for "standard_user and performance_glitch_user"
      */
 
-    @Test(dependsOnMethods = {"launchUrl"})
+    @Test(dataProvider = "LoginTestData",dependsOnMethods ={"launchUrl"},alwaysRun = true,priority = 2)
+    public void landingPageCardNaviagtion(String userName, String password){
+        sauceLoginPageObject.signInProcess(userName,password);
+        landingPageObjects.inventoryItems();
+        landingPageObjects.validateEachProduct();
+        sauceLoginPageObject.signOut();
+    }
+
+
+    /*Scenario - 4 : Add single/multiple product to cart, then validate count value in cart icon,
+     then logout and login into different account then login with the same account
+     cart count should be same
+     */
+
+    @Test(dependsOnMethods = {"launchUrl"},priority = 3)
     public void cartDetails(){
         sauceLoginPageObject.signInProcess("standard_user","secret_sauce");
-       int productCount = landingPageObjects.addProductToCart(Arrays.asList(new String[]{"Sauce Labs Backpack", "Sauce Labs Fleece Jacket"}));
+        int productCount = landingPageObjects.addProductToCart(Arrays.asList(new String[]{"Sauce Labs Backpack", "Sauce Labs Fleece Jacket"}));
         cartPageObject.cartIconProductCount(productCount);
+        sauceLoginPageObject.signOut();
+        sauceLoginPageObject.signInProcess("performance_glitch_user","secret_sauce");
+        sauceLoginPageObject.signOut();
+        sauceLoginPageObject.signInProcess("standard_user","secret_sauce");
+        cartPageObject.cartIconProductCount(productCount);
+        sauceLoginPageObject.signOut();
     }
 
 }

@@ -17,7 +17,8 @@ public class LandingPageObjects {
         this.driver = driver;
     }
 
-    SoftAssert softAssert = new SoftAssert();
+    SoftAssert softAssert;
+    SauceLoginPageObject sauceLoginPageObject;
 
     List<InventoryItemDetails> productDetails = new ArrayList<>();
 
@@ -53,14 +54,15 @@ public class LandingPageObjects {
             inventoryItemDetails.setItemName(itemName);
             inventoryItemDetails.setItemDescription(itemDescription);
             inventoryItemDetails.setItemPrice(itemPrice);
-            System.out.println(itemName+" product details added to the entity");
+            System.out.println(itemName + " product details added to the entity");
             productDetails.add(inventoryItemDetails);
         }
-        System.out.println("Total number of product is "+productDetails.size());
+        System.out.println("Total number of product is " + productDetails.size());
     }
 
     public void validateEachProduct() {
-        try{
+        try {
+            softAssert = new SoftAssert();
             for (InventoryItemDetails product : productDetails) {
                 System.out.println("Product name selected is " + product.getItemName());
                 WebElement productTitleInfo = driver.findElement(By.xpath("//div[contains(text(),'" + product.getItemName() + "')]"));
@@ -76,110 +78,113 @@ public class LandingPageObjects {
             productDetails.clear();
             InventoryItemDetails reset = new InventoryItemDetails();
             driver.manage().deleteAllCookies();
-        }
-        catch (Throwable e){
+        } catch (Throwable e) {
             InventoryItemDetails resetEntity = new InventoryItemDetails();
             productDetails.clear();
             driver.manage().deleteAllCookies();
-            System.out.println("Failure occured " +e);
+            sauceLoginPageObject = new SauceLoginPageObject(driver);
+            sauceLoginPageObject.signOut();
+            System.out.println("Failure occured " + e);
             throw e;
         }
 
     }
 
-    public void sorting(String selectSortingOption){
+    public void sorting(String selectSortingOption) {
         WebElement selectDropdown = driver.findElement(sortDropDown);
         Select selectTagDropDown = new Select(selectDropdown);
         selectTagDropDown.selectByVisibleText(selectSortingOption);
+        softAssert = new SoftAssert();
+        try {
+            switch (selectSortingOption) {
+                case "Name (A to Z)": {
+                    List<WebElement> productListName = driver.findElements(productName);
+                    List<String> actualProductName = new ArrayList<>();
 
-        switch (selectSortingOption){
-            case "Name (A to Z)" : {
-                List<WebElement> productListName = driver.findElements(productName);
-                List<String> actualProductName = new ArrayList<>();
+                    for (WebElement product : productListName) {
+                        actualProductName.add(product.getText());
+                    }
 
-                for(WebElement product : productListName){
-                    actualProductName.add(product.getText());
+                    List<String> expectedProductName = new ArrayList<>(actualProductName);
+                    Collections.sort(expectedProductName);
+
+                    softAssert.assertEquals(actualProductName, expectedProductName, actualProductName + " is not matching with " + expectedProductName);
+                    softAssert.assertAll();
+                    System.out.println("Sorting 'Name (A to Z)' passed successfully");
+                    break;
                 }
 
-                List<String> expectedProductName = new ArrayList<>(actualProductName);
-                Collections.sort(expectedProductName);
+                case "Name (Z to A)": {
+                    List<WebElement> productListName = driver.findElements(productName);
+                    List<String> actualProductName = new ArrayList<>();
 
-                softAssert.assertEquals(actualProductName,expectedProductName,actualProductName+" is not matching with "+expectedProductName);
-                softAssert.assertAll();
-                System.out.println("Sorting 'Name (A to Z)' passed successfully");
-                break;
-            }
+                    for (WebElement product : productListName) {
+                        actualProductName.add(product.getText());
+                    }
 
-            case "Name (Z to A)" : {
-                List<WebElement> productListName = driver.findElements(productName);
-                List<String> actualProductName = new ArrayList<>();
+                    List<String> expectedProductName = new ArrayList<>(actualProductName);
+                    Collections.sort(expectedProductName, Collections.reverseOrder());
 
-                for(WebElement product : productListName){
-                    actualProductName.add(product.getText());
+                    softAssert.assertEquals(actualProductName, expectedProductName, actualProductName + " is not matching with " + expectedProductName);
+                    softAssert.assertAll();
+                    System.out.println("Sorting 'Name (Z to A)' passed successfully");
+                    break;
                 }
 
-                List<String> expectedProductName = new ArrayList<>(actualProductName);
-                Collections.sort(expectedProductName,Collections.reverseOrder());
+                case "Price (low to high)": {
+                    List<WebElement> productListPrice = driver.findElements(productPrice);
+                    List<Double> actualProductPrice = new ArrayList<>();
 
-                softAssert.assertEquals(actualProductName,expectedProductName,actualProductName+" is not matching with "+expectedProductName);
-                softAssert.assertAll();
-                System.out.println("Sorting 'Name (Z to A)' passed successfully");
-                break;
-            }
+                    for (WebElement productPrice : productListPrice) {
+                        actualProductPrice.add(Double.valueOf(productPrice.getText().replace("$", "").trim()));
+                    }
 
-            case "Price (low to high)" : {
-                List<WebElement> productListPrice = driver.findElements(productPrice);
-                List<Double> actualProductPrice = new ArrayList<>();
+                    List<Double> expectedProductPrice = new ArrayList<>(actualProductPrice);
+                    Collections.sort(expectedProductPrice);
 
-                for(WebElement productPrice : productListPrice){
-                    actualProductPrice.add(Double.valueOf(productPrice.getText().replace("$","").trim()));
+                    softAssert.assertEquals(actualProductPrice, expectedProductPrice, actualProductPrice + " is not matching with " + expectedProductPrice);
+                    softAssert.assertAll();
+                    System.out.println("Sorting 'Price (low to high)' passed successfully");
+                    break;
                 }
 
-                List<Double> expectedProductPrice = new ArrayList<>(actualProductPrice);
-                Collections.sort(expectedProductPrice);
+                case "Price (high to low)": {
+                    List<WebElement> productListPrice = driver.findElements(productPrice);
+                    List<Double> actualProductPrice = new ArrayList<>();
 
-                softAssert.assertEquals(actualProductPrice,expectedProductPrice,actualProductPrice+" is not matching with "+expectedProductPrice);
-                softAssert.assertAll();
-                System.out.println("Sorting 'Price (low to high)' passed successfully");
-                break;
-            }
+                    for (WebElement productPrice : productListPrice) {
+                        actualProductPrice.add(Double.valueOf(productPrice.getText().replace("$", "").trim()));
+                    }
 
-            case "Price (high to low)" : {
-                List<WebElement> productListPrice = driver.findElements(productPrice);
-                List<Double> actualProductPrice = new ArrayList<>();
+                    List<Double> expectedProductPrice = new ArrayList<>(actualProductPrice);
+                    Collections.sort(expectedProductPrice, Collections.reverseOrder());
 
-                for(WebElement productPrice : productListPrice){
-                    actualProductPrice.add(Double.valueOf(productPrice.getText().replace("$","").trim()));
+                    softAssert.assertEquals(actualProductPrice, expectedProductPrice, actualProductPrice + " is not matching with " + expectedProductPrice);
+                    softAssert.assertAll();
+                    System.out.println("Sorting 'Price (high to low)' passed successfully");
+                    break;
                 }
 
-                List<Double> expectedProductPrice = new ArrayList<>(actualProductPrice);
-                Collections.sort(expectedProductPrice,Collections.reverseOrder());
-
-                softAssert.assertEquals(actualProductPrice,expectedProductPrice,actualProductPrice+" is not matching with "+expectedProductPrice);
-                softAssert.assertAll();
-                System.out.println("Sorting 'Price (high to low)' passed successfully");
-                break;
+                default: {
+                    System.out.println("No Such Sorting option declared");
+                }
             }
-
-            default:{
-                System.out.println("No Such Sorting option declared");
-            }
+        } catch (Throwable e) {
+            sauceLoginPageObject = new SauceLoginPageObject(driver);
+            sauceLoginPageObject.signOut();
+            throw e;
         }
     }
 
-    public int addProductToCart(List<String> productNameInfo){
+    public int addProductToCart(List<String> productNameInfo) {
         int count = 0;
         List<WebElement> productListName = driver.findElements(productName);
         List<String> actualProductName = new ArrayList<>();
-        for(String product : productNameInfo){
-            for(WebElement productElement : productListName){
-                if(product.equalsIgnoreCase(productElement.getText())){
-                    driver.findElement(addToCartBtn).click();
-                    count++;
-                    break;
-                }
-            }
+        for (String product : productNameInfo) {
+            driver.findElement(By.xpath("//*[contains(text(),'" + product + "')]/ancestor::div[@class='inventory_item'] //button")).click();
+            count++;
         }
+        System.out.println(count+" products are added to cart");
         return count;
     }
 }

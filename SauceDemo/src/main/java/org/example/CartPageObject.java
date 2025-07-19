@@ -17,11 +17,14 @@ public class CartPageObject {
     By cartIcon = By.id("shopping_cart_container");
     By cartIconProductCount = By.className("shopping_cart_badge");
 
-    LandingPageObjects landingPageObjects = new LandingPageObjects(driver);
     public void cartIconProductCount(int expectedCount){
         int actualCount = Integer.parseInt(driver.findElement(cartIconProductCount).getText());
         softAssert.assertEquals(actualCount,expectedCount,actualCount+" is not matched with "+expectedCount);
         softAssert.assertAll();
+    }
+
+    public void navigateToCartPage(){
+        driver.findElement(cartIcon).click();
     }
 
 }

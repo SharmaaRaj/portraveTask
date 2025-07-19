@@ -21,12 +21,14 @@ public class SauceLoginPageObject {
 
     public void UserName(String userName) {
         WebElement loginUserName = driver.findElement(By.id("user-name"));
+        loginUserName.clear();
         loginUserName.sendKeys(userName);
         System.out.println("In Login Page User name entered as " + userName);
     }
 
     public void Password(String password) {
         WebElement loginPassword = driver.findElement(By.id("password"));
+        loginPassword.clear();
         loginPassword.sendKeys(password);
         System.out.println("In Login Page password entered as " + password);
     }
@@ -61,11 +63,13 @@ public class SauceLoginPageObject {
         WebElement logOut = driver.findElement(By.id("logout_sidebar_link"));
         burgerMenubtn.click();
         logOut.click();
+        driver.manage().deleteAllCookies();
         System.out.println("Logged out Successfully");
         System.out.println("------------------------------------------------------------");
     }
 
     public void signInProcess(String UserNameInput, String PasswordInput){
+        driver.navigate().refresh();
         UserName(UserNameInput);
         Password(PasswordInput);
         loginButton();
@@ -81,14 +85,17 @@ public class SauceLoginPageObject {
                 break;
             }
             case "invaliduser": {
+                driver.navigate().refresh();
                 UserName(UserNameInput);
                 Password(PasswordInput);
                 loginButton();
                 errorMessages("Sorry, this user has been locked out.");
+                errorMessageCloseIcon();
                 break;
             }
             case "withoutusername":
             case "withoutusernameandpassword": {
+                driver.navigate().refresh();
                 UserName(UserNameInput);
                 Password(PasswordInput);
                 loginButton();
@@ -96,6 +103,7 @@ public class SauceLoginPageObject {
                 break;
             }
             case "withoutpassword": {
+                driver.navigate().refresh();
                 UserName(UserNameInput);
                 Password(PasswordInput);
                 loginButton();
@@ -103,6 +111,7 @@ public class SauceLoginPageObject {
                 break;
             }
             case "errormessagedisappear": {
+                driver.navigate().refresh();
                 UserName(UserNameInput);
                 Password(PasswordInput);
                 loginButton();
